@@ -35,13 +35,12 @@ plot_ly(us_data, x = ~Gender)
 us_f_salary<-subset(us_data,Gender = 'Woman')$ConvertedCompYearly
 plot_ly(us_data,x=~CompTotal,color=~Gender,type='histogram')
 
+us_f_salary
 
 
 #search for correlations between salary and age, experience, gender, ethnicity,tech stack, degree
 plot_ly(us_data,x=~YearsCodePro,y=~CompTotal,type = 'scatter',color ='Gender')
 plot_ly(us_data,x=~YearsCodePro,y=~CompTotal,type = 'scatter',color ='Years Code')
-
-
 #identify most popular Tech-Stacks and display them as Word Cloud
 
 
