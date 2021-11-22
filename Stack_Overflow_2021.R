@@ -40,10 +40,6 @@ plot_ly(us_data,x=~CompTotal,color=~Gender,type='histogram')
 us_f_salary
 figure<-1
 
-#this is Max session
-figure_1<-2
-#Hello Pascal
-
 s#search for correlations between salary and age, experience, gender, ethnicity,tech stack, degree
 plot_ly(us_data,x=~YearsCodePro,y=~CompTotal,type = 'scatter',color ='Gender')
 plot_ly(us_data,x=~YearsCodePro,y=~CompTotal,type = 'scatter',color ='Years Code')
@@ -55,9 +51,16 @@ plot_ly(us_data,x=~YearsCodePro,y=~CompTotal,type = 'scatter',color ='Years Code
 # This is Ray's section
 
 
+
+
+
+
 ####
 
-# This is Mksim's section
+# This is Maksim's section
+
+
+
 
 
 ####
