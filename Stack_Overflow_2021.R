@@ -51,3 +51,13 @@ plot_ly(us_data,x=~YearsCodePro,y=~CompTotal,type = 'scatter',color ='Years Code
 
 
 #show US map with coders origin
+
+# This is Ray's section
+
+
+####
+
+# This is Mksim's section
+
+
+####
