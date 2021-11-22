@@ -41,7 +41,7 @@ us_f_salary
 figure<-1
 
 #this is Max session
-figure_1<-1
+figure_1<-2
 #Hello Pascal
 
 s#search for correlations between salary and age, experience, gender, ethnicity,tech stack, degree
