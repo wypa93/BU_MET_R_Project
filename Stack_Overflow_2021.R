@@ -1,5 +1,7 @@
 library(plotly) 
 library(UsingR)
+library(usethis)
+
 options(scipen=0)
 data<-read.csv('/Users/wypa/Google Drive/Boston University /CS544_Fundamentals_of_R/Project/SO_Survey/survey_results_responses.csv')
 
@@ -36,9 +38,10 @@ us_f_salary<-subset(us_data,Gender = 'Woman')$ConvertedCompYearly
 plot_ly(us_data,x=~CompTotal,color=~Gender,type='histogram')
 
 us_f_salary
+figure<-1
 
 
-#search for correlations between salary and age, experience, gender, ethnicity,tech stack, degree
+s#search for correlations between salary and age, experience, gender, ethnicity,tech stack, degree
 plot_ly(us_data,x=~YearsCodePro,y=~CompTotal,type = 'scatter',color ='Gender')
 plot_ly(us_data,x=~YearsCodePro,y=~CompTotal,type = 'scatter',color ='Years Code')
 #identify most popular Tech-Stacks and display them as Word Cloud
