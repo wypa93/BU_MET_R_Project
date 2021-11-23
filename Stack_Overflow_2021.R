@@ -8,13 +8,12 @@ library(sm)
 options(scipen=0)
 data<-read.csv('/Users/wypa/Google Drive/Boston University /CS544_Fundamentals_of_R/Project/SO_Survey/survey_results_responses.csv')
 
+view('data')
 #investigate and transform datatypes where required
 colnames(us_data)
-typeof(data$TotalComp)
+data$TotalComp<-as.intger(data$TotalComp)
 data$YearsCode<-as.integer(data$YearsCode)
 data$YearsCodePro<-as.integer(data$YearsCodePro)
-
-View(us_data)
 
 #Analysis of US Responses only where Total Compensation > US Federal Minimum Wage 2021
 us_data<-subset(data,Country == 'United States of America'&
@@ -25,12 +24,8 @@ us_data<-subset(data,Country == 'United States of America'&
 
 #search for and remove  outliers in Salary data using 1.5 IQR
 f<-fivenum(us_data$CompTotal);f
-subset(us_data, CompTotal > f[4] + 1.5*(f[4] - f[2])) #investigate upper outliers
-us_data<-subset(us_data,CompTotal<f[4]+1.5*(f[4]-f[2])) #remove upper outliers
-
-plot_ly(us_data, x = ~CompTotal, type="box", name = 'Total Compensation',
-        boxpoints = "all", jitter = 0.2, pointpos = -1.5)
-
+subset(us_data, CompTotal > f[4] + 1.5*(f[4] - f[2])) 
+us_data<-subset(us_data,CompTotal<f[4]+1.5*(f[4]-f[2])) 
 
 ### Analyze Gender Pay Gap
 female <- subset(us_data,Gender == 'Woman')
@@ -45,17 +40,16 @@ fig <- fig %>% layout(xaxis = list(title = 'Total Compensation'),
 
 fig
 
-## Analyze Years of Code by Gender
+## Analyze Years of Professional Code by Gender
 density3 <- density(drop_na(female,YearsCodePro)$YearsCodePro)
 density4 <- density(drop_na(male,YearsCodePro)$YearsCodePro)
 
 fig <- plot_ly(x = ~density3$x, y = ~density3$y, type = 'scatter', mode = 'lines', name = 'Women', fill = 'tozeroy')
 fig <- fig %>% add_trace(x = ~density4$x, y = ~density4$y, name = 'Man', fill = 'tozeroy')
-fig <- fig %>% layout(xaxis = list(title = 'Total Compensation'),
+fig <- fig %>% layout(xaxis = list(title = 'Years of Professional Coding Experience'),
                       yaxis = list(title = 'Density'))
 
 fig
-
 
 
 # Analyze Ethnicity Pay Gap
