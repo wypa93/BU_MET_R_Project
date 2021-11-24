@@ -1,4 +1,4 @@
-library(plotly) 
+library(plotly)
 library(UsingR)
 library(usethis)
 library(dplyr)
@@ -8,6 +8,7 @@ library(sm)
 options(scipen=0)
 data<-read.csv('/Users/wypa/Google Drive/Boston University /CS544_Fundamentals_of_R/Project/SO_Survey/survey_results_responses.csv')
 
+#this is a comment
 
 view('data')
 #investigate and transform datatypes where required
