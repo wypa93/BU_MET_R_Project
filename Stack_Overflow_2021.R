@@ -3,14 +3,15 @@ library(UsingR)
 library(usethis)
 library(dplyr)
 library(tidyr)
+library(sampling)
 library(sm)
 
 options(scipen=0)
 data<-read.csv('/Users/wypa/Google Drive/Boston University /CS544_Fundamentals_of_R/Project/SO_Survey/survey_results_responses.csv')
-
-
 View(data)
-#investigate and transform datatypes where required
+
+
+### investigate and transform datatypes where required ###
 colnames(us_data)
 data$TotalComp<-as.intger(data$TotalComp)
 data$YearsCode<-as.integer(data$YearsCode)
@@ -28,7 +29,7 @@ f<-fivenum(us_data$CompTotal);f
 subset(us_data, CompTotal > f[4] + 1.5*(f[4] - f[2])) 
 us_data<-subset(us_data,CompTotal<f[4]+1.5*(f[4]-f[2])) 
 
-### Analyze Gender Pay Gap
+### Analyze Pay Gap by Gender
 female <- subset(us_data,Gender == 'Woman')
 male <- subset(us_data,Gender == 'Man')
 density1 <- density(female$CompTotal)
@@ -38,10 +39,9 @@ fig <- plot_ly(x = ~density1$x, y = ~density1$y, type = 'scatter', mode = 'lines
 fig <- fig %>% add_trace(x = ~density2$x, y = ~density2$y, name = 'Man', fill = 'tozeroy')
 fig <- fig %>% layout(xaxis = list(title = 'Total Compensation'),
                       yaxis = list(title = 'Density'))
-
 fig
 
-## Analyze Years of Professional Code by Gender
+## Analyze Years of Professional Code Experience by Gender
 density3 <- density(drop_na(female,YearsCodePro)$YearsCodePro)
 density4 <- density(drop_na(male,YearsCodePro)$YearsCodePro)
 
@@ -51,18 +51,20 @@ fig <- fig %>% layout(xaxis = list(title = 'Years of Professional Coding Experie
                       yaxis = list(title = 'Density'))
 fig
 
-## Analyze Education Level
+## Analyze Education Level by Gender
 ed_tab_m <- table(male$EdLevel)
-ed_tab_m <- ed_tab_m / sum(as.numeric(ed_tab_m));ed_tab_m
+ed_tab_m <- ed_tab_m / sum(as.numeric(ed_tab_m))
+ed_tab_m <- sort(ed_tab_m,decreasing = TRUE)
 
 ed_tab_f <- table(female$EdLevel)
-ed_tab_f <- ed_tab_f / sum(as.numeric(ed_tab_f));ed_tab_f
+ed_tab_f <- ed_tab_f / sum(as.numeric(ed_tab_f))
+ed_tab_f <- sort(ed_tab_f,decreasing = TRUE)
 
-fig <- plot_ly(type='bar',y=round(as.numeric(ed_tab_m),2),x=names(ed_tab_m),name='Men');fig
+fig <- plot_ly(type='bar',y=round(as.numeric(ed_tab_m),2),x=names(ed_tab_m),name='Men')
 fig %>% add_trace(type='bar',y=round(as.numeric(ed_tab_f),2),x=names(ed_tab_f),name='Woman')
 
 
-# Analyze Ethnicity Pay Gap
+# Analyze Pay Gap by Ethnicity
 ethn <- table(us_data$Ethnicity)
 ethn<-ethn[ethn > 100]
 names(ethn)
@@ -88,9 +90,23 @@ fig <- fig %>% layout(xaxis = list(title = 'Total Compensation'),
 fig
 
 
-s#search for correlations between salary and age, experience, gender, ethnicity,tech stack, degree
+#search for correlations between salary and age, experience, gender, ethnicity,tech stack, degree
 plot_ly(us_data,x=~YearsCodePro,y=~CompTotal,type = 'scatter',color ='Gender')
 plot_ly(us_data,x=~YearsCodePro,y=~CompTotal,type = 'scatter',color ='Years Code')
+
+# Central Limit Theorem
+s <- srswr(100, nrow(us_data))
+rows <- (1:nrow(us_data))[s!=0]
+rows <- rep(rows, s[s != 0])
+sample.1 <- us_data[rows, ]
+
+s <- srswr(200, nrow(us_data))
+rows <- (1:nrow(us_data))[s!=0]
+rows <- rep(rows, s[s != 0])
+sample.2 <- us_data[rows, ]
+
+fig <- plot_ly(sample.1,x=~CompTotal)
+fig %>% add_trace(sample.2,x=~CompTotal);fig
 
 
 #identify most popular Tech-Stacks and display them as Word Cloud
