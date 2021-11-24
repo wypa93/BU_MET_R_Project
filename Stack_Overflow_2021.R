@@ -8,9 +8,8 @@ library(sm)
 options(scipen=0)
 data<-read.csv('/Users/wypa/Google Drive/Boston University /CS544_Fundamentals_of_R/Project/SO_Survey/survey_results_responses.csv')
 
-#this is a comment
 
-view('data')
+View(data)
 #investigate and transform datatypes where required
 colnames(us_data)
 data$TotalComp<-as.intger(data$TotalComp)
@@ -52,6 +51,16 @@ fig <- fig %>% layout(xaxis = list(title = 'Years of Professional Coding Experie
                       yaxis = list(title = 'Density'))
 fig
 
+## Analyze Education Level
+ed_tab_m <- table(male$EdLevel)
+ed_tab_m <- ed_tab_m / sum(as.numeric(ed_tab_m));ed_tab_m
+
+ed_tab_f <- table(female$EdLevel)
+ed_tab_f <- ed_tab_f / sum(as.numeric(ed_tab_f));ed_tab_f
+
+fig <- plot_ly(type='bar',y=round(as.numeric(ed_tab_m),2),x=names(ed_tab_m),name='Men');fig
+fig %>% add_trace(type='bar',y=round(as.numeric(ed_tab_f),2),x=names(ed_tab_f),name='Woman')
+
 
 # Analyze Ethnicity Pay Gap
 ethn <- table(us_data$Ethnicity)
@@ -82,10 +91,13 @@ fig
 s#search for correlations between salary and age, experience, gender, ethnicity,tech stack, degree
 plot_ly(us_data,x=~YearsCodePro,y=~CompTotal,type = 'scatter',color ='Gender')
 plot_ly(us_data,x=~YearsCodePro,y=~CompTotal,type = 'scatter',color ='Years Code')
+
+
 #identify most popular Tech-Stacks and display them as Word Cloud
 
 
 #show US map with coders origin
+
 
 # This is Ray's section
 
