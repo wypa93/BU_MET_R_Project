@@ -94,58 +94,39 @@ fig
 plot_ly(us_data,x=~YearsCodePro,y=~CompTotal,type = 'scatter',color ='Gender')
 plot_ly(us_data,x=~YearsCodePro,y=~CompTotal,type = 'scatter',color ='Years Code')
 
-# Central Limit Theorem
-s <- srswr(800, nrow(us_data))
-rows <- (1:nrow(us_data))[s!=0]
-rows <- rep(rows, s[s != 0])
-sample.1 <- us_data[rows, ]
-m1<-mean(sample.1$CompTotal)
-sd1<-sd(sample.1$CompTotal)
 
-s <- srswr(1200, nrow(us_data))
-rows <- (1:nrow(us_data))[s!=0]
-rows <- rep(rows, s[s != 0])
-sample.2 <- us_data[rows, ]
-m2<-mean(sample.2$CompTotal)
-sd2<-sd(sample.2$CompTotal)
+## Central Limit Theorem ##
+sample.sizes <- c(20,30,40,50)
+sample.means <- c()
+sample.dev <- c()
 
-s <- srswr(1600, nrow(us_data))
-rows <- (1:nrow(us_data))[s!=0]
-rows <- rep(rows, s[s != 0])
-sample.3 <- us_data[rows, ]
-m3<-mean(sample.3$CompTotal)
-sd3<-sd(sample.3$CompTotal)
+# Generate 1000 Samples of different sizes
+getSamples <- function(size){
+  samples <- 10000
+  xbar <- numeric(samples)
+  for (i in 1: samples) {
+   xbar[i] <- mean(sample(us_data$CompTotal,size=size,replace=TRUE))
+  }
+  xbar
+}
 
-s <- srswr(2500, nrow(us_data))
-rows <- (1:nrow(us_data))[s!=0]
-rows <- rep(rows, s[s != 0])
-sample.4 <- us_data[rows, ]
-m4<-mean(sample.4$CompTotal)
-sd4<-sd(sample.4$CompTotal)
-
-s <- srswr(3000, nrow(us_data))
-rows <- (1:nrow(us_data))[s!=0]
-rows <- rep(rows, s[s != 0])
-sample.5 <- us_data[rows, ]
-m5<-mean(sample.5$CompTotal)
-sd5<-sd(sample.5$CompTotal)
-
-m6<-mean(us_data$CompTotal)
-sd6<-sd(us_data$CompTotal)
-
-fig1 <- plot_ly(sample.1,x=~CompTotal, type = "histogram",name='size= 800')
-fig2 <- plot_ly(sample.2,x=~CompTotal, type = "histogram",name='size= 1200')
-fig3 <- plot_ly(sample.3,x=~CompTotal,type = "histogram",name='size= 1600')
-fig4 <- plot_ly(sample.4,x=~CompTotal, type = "histogram",name='size= 2500')
-fig5 <- plot_ly(sample.5,x=~CompTotal, type = "histogram",name='size= 3000')
-fig6 <- plot_ly(us_data,x=~CompTotal, type = "histogram",name='Full data')
-fig <- plotly:: subplot(fig1,fig2,fig3,fig4,fig5,fig6,nrows=3)%>%
+# Visualize outcome as Histograms
+fig1 <- plot_ly(x = ~getSamples(10), type = "histogram",name='size 10')
+fig2 <- plot_ly(x = ~getSamples(100), type = "histogram",name='size 100')
+fig3 <- plot_ly(x = ~getSamples(200), type = "histogram",name='size 200')
+fig4 <- plot_ly(x = ~getSamples(400), type = "histogram",name='size 400')
+fig <- plotly:: subplot(fig1,fig2,fig3,fig4,nrows=2)%>%
   layout(title='Randomized Sampling of Total Compensation');fig
 
-sampleSizes <- c(800,1200,1600,2500,3000)
-means<-c(m1,m2,m3,m4,m5,m6)
-deviations <-c(sd1,sd2,sd3,sd4,sd5,sd6)
-sprint
+#print means and standard deviations for each size
+for (i in sample.sizes){
+  x<-getSamples(i)
+  sample.means <- c(sample.means,mean(x))
+  sample.dev <- c(sample.dev,sd(x))
+}
+cat(sprintf('Sample Size: %f, Mean: %f, Standard Deviation, %f\n',
+            sample.sizes,sample.means,sample.dev))
+sample.means
 
 #identify most popular Tech-Stacks and display them as Word Cloud
 
