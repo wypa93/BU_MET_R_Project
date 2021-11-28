@@ -5,6 +5,7 @@ library(dplyr)
 library(tidyr)
 library(sampling)
 library(sm)
+library(stringr)
 options(scipen=0)
 data<-read.csv('/Users/wypa/Google Drive/Boston University /CS544_Fundamentals_of_R/Project/SO_Survey/survey_results_responses.csv')
 View(data)
@@ -25,6 +26,12 @@ f<-fivenum(us_data$CompTotal);f
 subset(us_data, CompTotal > f[4] + 1.5*(f[4] - f[2])) 
 us_data<-subset(us_data,CompTotal<f[4]+1.5*(f[4]-f[2])) 
 
+
+### CATEGORICAL DATA ###
+lang1 <- sort(table(unlist(strsplit(us_data$LanguageHaveWorkedWith, split = ';',fixed = TRUE))),decreasing = FALSE)
+lang2 <- sort(table(unlist(strsplit(us_data$LanguageWantToWorkWith, split = ';',fixed = TRUE))),decreasing = FALSE)
+fig <- plot_ly(x=as.numeric(lang1),y=names(lang1),type = "bar", name = 'worked with') %>%
+  add_trace(x=as.numeric(lang2),y=names(lang2),type = "bar",name = ' want to work with');fig
 
 
 
@@ -113,10 +120,6 @@ for (i in sample.sizes){
   sample.dev <- c(sample.dev,sd(x))
 }
 sprintf('Sample Size: %i, Mean: %f, Standard Deviation, %f',sample.sizes,sample.means,sample.dev)
-
-
-
-#identify most popular Tech-Stacks and display them as Word Cloud
 
 
 #show US map with coders origin
