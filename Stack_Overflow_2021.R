@@ -99,7 +99,6 @@ plot_ly(us_data,x=~YearsCodePro,y=~CompTotal,type = 'scatter',color ='Years Code
 sample.sizes <- c(20,30,40,50)
 sample.means <- c()
 sample.dev <- c()
-
 # Generate 1000 Samples of different sizes
 getSamples <- function(size){
   samples <- 10000
@@ -109,7 +108,6 @@ getSamples <- function(size){
   }
   xbar
 }
-
 # Visualize outcome as Histograms
 fig1 <- plot_ly(x = ~getSamples(10), type = "histogram",name='size 10')
 fig2 <- plot_ly(x = ~getSamples(100), type = "histogram",name='size 100')
@@ -124,9 +122,8 @@ for (i in sample.sizes){
   sample.means <- c(sample.means,mean(x))
   sample.dev <- c(sample.dev,sd(x))
 }
-cat(sprintf('Sample Size: %f, Mean: %f, Standard Deviation, %f\n',
-            sample.sizes,sample.means,sample.dev))
-sample.means
+sprintf('Sample Size: %i, Mean: %f, Standard Deviation, %f',sample.sizes,sample.means,sample.dev)
+
 
 #identify most popular Tech-Stacks and display them as Word Cloud
 
