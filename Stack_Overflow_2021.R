@@ -41,12 +41,32 @@ us_data<-subset(us_data,CompTotal<f[4]+1.5*(f[4]-f[2]))
 
 
 ### CATEGORICAL DATA ###
-lang1 <- sort(table(unlist(strsplit(us_data$LanguageHaveWorkedWith, split = ';',fixed = TRUE))),decreasing = TRUE)
-lang2 <- sort(table(unlist(strsplit(us_data$LanguageWantToWorkWith, split = ';',fixed = TRUE))),decreasing = TRUE)
 
-fig <- plot_ly(x=as.numeric(lang1),y=names(lang1),type = "bar", name = 'worked with') %>%
-  add_trace(x=as.numeric(lang2),y=names(lang2),type = "bar",name = ' want to work with');fig
-
+#Popular Tech-Stacks
+getPopularity <- function(workedWith,wantToWorkWith,topic){
+  lang1 <- sort(table(unlist(strsplit(workedWith, split = ';',fixed = TRUE))),decreasing = FALSE)
+  lang2 <- sort(table(unlist(strsplit(wantToWorkWith, split = ';',fixed = TRUE))),decreasing = FALSE)
+  fig <- plot_ly(x=as.numeric(lang1),y=names(lang1),type = "bar", name = 'worked with') %>%
+    add_trace(x=as.numeric(lang2),y=names(lang2),type = "bar",name = ' want to work with')%>%
+    layout( yaxis = list(title = topic,
+                        categoryorder = "array",
+                        categoryarray = ~as.numeric(lang1)),
+           yaxis = list(title = "Frequency")
+    )
+  fig
+}
+#Coding Languages
+getPopularity(us_data$LanguageHaveWorkedWith,us_data$LanguageWantToWorkWith,'Languages')
+#Databases
+getPopularity(us_data$DatabaseHaveWorkedWith,us_data$DatabaseWantToWorkWith,'Databases')
+#Coding Tools
+getPopularity(us_data$ToolsTechHaveWorkedWith,us_data$ToolsTechWantToWorkWith,'Tools')
+#Webframes
+getPopularity(us_data$WebframeHaveWorkedWith,us_data$WebframeWantToWorkWith,'Webframes')
+#Misc
+getPopularity(us_data$MiscTechHaveWorkedWith,us_data$MiscTechWantToWorkWith,'Misc')
+#Platforms
+getPopularity(us_data$PlatformHaveWorkedWith,us_data$PlatformWantToWorkWith,'Webframes')
 
 
 ### ANALYSIS OF GENDER DIFFERENCES ###
