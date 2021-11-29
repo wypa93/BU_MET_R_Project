@@ -36,7 +36,6 @@ fig <- plot_ly(x=as.numeric(lang1),y=names(lang1),type = "bar", name = 'worked w
 
 
 
-
 ### ANALYSIS OF GENDER DIFFERENCES ###
 female <- subset(us_data,Gender == 'Woman')
 male <- subset(us_data,Gender == 'Man')
