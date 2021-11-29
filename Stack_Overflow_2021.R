@@ -41,8 +41,7 @@ us_data<-subset(us_data,CompTotal<f[4]+1.5*(f[4]-f[2]))
 
 
 ### CATEGORICAL DATA ###
-
-#Popular Tech-Stacks
+#POPULAR TECH-STACKS
 getPopularity <- function(workedWith,wantToWorkWith,topic){
   lang1 <- sort(table(unlist(strsplit(workedWith, split = ';',fixed = TRUE))),decreasing = FALSE)
   lang2 <- sort(table(unlist(strsplit(wantToWorkWith, split = ';',fixed = TRUE))),decreasing = FALSE)
@@ -67,7 +66,21 @@ getPopularity(us_data$WebframeHaveWorkedWith,us_data$WebframeWantToWorkWith,'Web
 getPopularity(us_data$MiscTechHaveWorkedWith,us_data$MiscTechWantToWorkWith,'Misc')
 #Platforms
 getPopularity(us_data$PlatformHaveWorkedWith,us_data$PlatformWantToWorkWith,'Webframes')
+#Collab Tools
+getPopularity(us_data$NEWCollabToolsHaveWorkedWith,us_data$NEWCollabToolsWantToWorkWith,'Collab Tools')
 
+#PIE CHARTS
+getPieChart <- function(values,name){
+  vls <- sort(table(unlist(strsplit(values, split = ';',fixed = TRUE))),decreasing = FALSE)
+  fig<-plot_ly(labels=names(vls),values=as.numeric(vls))
+  fig <- fig %>% add_pie(hole = 0.6)
+  fig <- fig %>% layout(title = name,  showlegend = F,
+                        xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                        yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+  
+  fig
+}
+getPieChart(us_data$NEWStuck,'What to do when you are stuck?')
 
 ### ANALYSIS OF GENDER DIFFERENCES ###
 female <- subset(us_data,Gender == 'Woman')
@@ -98,32 +111,6 @@ ed_tab_f <- sort(ed_tab_f,decreasing = TRUE)
 
 fig <- plot_ly(type='bar',y=round(as.numeric(ed_tab_m),2),x=names(ed_tab_m),name='Men')
 fig %>% add_trace(type='bar',y=round(as.numeric(ed_tab_f),2),x=names(ed_tab_f),name='Woman')
-
-
-### Analyze Pay Gap by Ethnicity ###
-ethn <- table(us_data$Ethnicity)
-ethn<-ethn[ethn > 100]
-names(ethn)
-
-fig <- plot_ly(type = 'scatter', mode = 'line',fill = 'tozeroy')
-fig <- fig %>% add_trace(x = ~density(subset(us_data,Ethnicity == 'Black or of African descent')$CompTotal)$x
-                         , y = ~density(subset(us_data,Ethnicity == 'Black or of African descent')$CompTotal)$y
-                         , name = 'Black or of African descent')
-fig <- fig %>% add_trace(x = ~density(subset(us_data,Ethnicity == 'East Asian')$CompTotal)$x
-                         , y = ~density(subset(us_data,Ethnicity == 'East Asian')$CompTotal)$y
-                         , name = 'East Asian')
-fig <- fig %>% add_trace(x = ~density(subset(us_data,Ethnicity == 'South Asian')$CompTotal)$x
-                         , y = ~density(subset(us_data,Ethnicity == 'South Asian')$CompTotal)$y
-                         , name = 'South Asian')
-fig <- fig %>% add_trace(x = ~density(subset(us_data,Ethnicity == 'Hispanic or Latino/a/x')$CompTotal)$x
-                         , y = ~density(subset(us_data,Ethnicity == 'Hispanic or Latino/a/x')$CompTotal)$y
-                         , name = 'Hispanic or Latino/a/x')
-fig <- fig %>% add_trace(x = ~density(subset(us_data,Ethnicity == 'White or of European descent')$CompTotal)$x
-                         , y = ~density(subset(us_data,Ethnicity == 'White or of European descent')$CompTotal)$y
-                         , name = 'White or of European descent')
-fig <- fig %>% layout(xaxis = list(title = 'Total Compensation'),
-                      yaxis = list(title = 'Density'))
-fig
 
 
 ## Central Limit Theorem ##
