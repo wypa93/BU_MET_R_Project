@@ -6,14 +6,27 @@ library(tidyr)
 library(sampling)
 library(sm)
 library(stringr)
+
+# Ray's libraries
+library(maps)
+library(mapproj)
+library(mapdata)
+library(ggplot2)
+
 options(scipen=0)
+
+# Open from Pascal's PC
 data<-read.csv('/Users/wypa/Google Drive/Boston University /CS544_Fundamentals_of_R/Project/SO_Survey/survey_results_responses.csv')
+
+# Open from Ray's PC
+data<-read.csv('/Users/rayhan/Documents/School/BU/1) Fall 2021/CS 544 (Foundations of Analytics with R)/Final Project/BU_MET_R_Project/survey_results_responses.csv')
+
 View(data)
 
 ### PRE-PROCESSING ###
 # investigate and transform datatypes where required ###
-colnames(us_data)
-data$TotalComp<-as.intger(data$TotalComp)
+colnames(us_data) #us_data not defined before this (Ray)
+data$TotalComp<-as.integer(data$TotalComp) #typo here previously as.intger (Ray)
 data$YearsCode<-as.integer(data$YearsCode)
 data$YearsCodePro<-as.integer(data$YearsCodePro)
 #Analysis of US Responses only where Total Compensation > US Federal Minimum Wage 2021
@@ -134,12 +147,33 @@ sprintf('Sample Size: %i, Mean: %f, Standard Deviation, %f',sample.sizes,sample.
 
 
 # This is Ray's section
+# US States
+s <- map_data('state')
+ggplot(s, aes(x = long, y = lat, group = group, fill = region)) +
+  geom_polygon(color = 'black') +
+  coord_map('polyconic') +
+  guides(fill = F)
 
+# Coders from each state
+Coders_Origin <- us_data %>% group_by(US_State) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
 
+# Merge data
+Coders_Origin$US_State <- tolower(Coders_Origin$US_State)
+Coders_data <- merge(s, Coders_Origin,
+                     by.x = 'region',
+                     by.y = 'US_State')
 
-
-
-
+# Plot
+ggplot(Coders_data, aes(x = long, y = lat,
+                        group = group,
+                        fill = count)) +
+  geom_polygon(color = 'gray') +
+  coord_map('polyconic') +
+  scale_fill_gradient2(low = 'white', high = 'red') +
+  theme_void() +
+  ggtitle('Amount of coders by State')
 ####
 
 # This is Maksim's section
