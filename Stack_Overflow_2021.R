@@ -69,9 +69,9 @@ getPopularity(us_data$PlatformHaveWorkedWith,us_data$PlatformWantToWorkWith,'Web
 #Collab Tools
 getPopularity(us_data$NEWCollabToolsHaveWorkedWith,us_data$NEWCollabToolsWantToWorkWith,'Collab Tools')
 
-#PIE CHARTS
-getPieChart <- function(values,name){
-  vls <- sort(table(unlist(strsplit(values, split = ';',fixed = TRUE))),decreasing = FALSE)
+#DONUT CHARTS
+getDonut <- function(values,name){
+  vls <- sort(table(unlist(strsplit(values,split = ';',fixed = TRUE))),decreasing = FALSE)
   fig<-plot_ly(labels=names(vls),values=as.numeric(vls))
   fig <- fig %>% add_pie(hole = 0.6)
   fig <- fig %>% layout(title = name,  showlegend = F,
@@ -80,7 +80,14 @@ getPieChart <- function(values,name){
   
   fig
 }
-getPieChart(us_data$NEWStuck,'What to do when you are stuck?')
+getDonut(us_data$NEWStuck,'What to do when you are stuck?')
+getDonut(us_data$EdLevel,'What is your highest education level?')
+getDonut(us_data$LearnCode,'How did you learn to code?')
+getDonut(us_data$Age1stCode,'At what age did you start coding for the first time?')
+getDonut(us_data$MainBranch,'What is your occupation?')
+getDonut(us_data$Employment,'Are you working for an employer or do you freelance?')
+getDonut(us_data$DevType,'What dev type are you?')
+
 
 ### ANALYSIS OF GENDER DIFFERENCES ###
 female <- subset(us_data,Gender == 'Woman')
