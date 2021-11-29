@@ -98,6 +98,7 @@ fig
 sample.sizes <- c(20,30,40,50)
 sample.means <- c()
 sample.dev <- c()
+set.seed(9066)
 # Generate 1000 Samples of different sizes
 getSamples <- function(size){
   samples <- 10000
@@ -108,10 +109,14 @@ getSamples <- function(size){
   xbar
 }
 # Visualize outcome as Histograms
-fig1 <- plot_ly(x = ~getSamples(10), type = "histogram",name='size 10')
-fig2 <- plot_ly(x = ~getSamples(100), type = "histogram",name='size 100')
-fig3 <- plot_ly(x = ~getSamples(200), type = "histogram",name='size 200')
-fig4 <- plot_ly(x = ~getSamples(400), type = "histogram",name='size 400')
+fig1 <- plot_ly(x = ~getSamples(20), type = "histogram",name='size 20',histnorm='density')%>%
+  layout(yaxis=list(range=c(0,0.7)),xaxis=list(range=c(90000,180000)))
+fig2 <- plot_ly(x = ~getSamples(30), type = "histogram",name='size 30',histnorm='density')%>%
+  layout(yaxis=list(range=c(0,0.7)),xaxis=list(range=c(90000,180000)))
+fig3 <- plot_ly(x = ~getSamples(40), type = "histogram",name='size 40',histnorm='density')%>%
+  layout(yaxis=list(range=c(0,0.7)),xaxis=list(range=c(90000,180000)))
+fig4 <- plot_ly(x = ~getSamples(50), type = "histogram",name='size 50',histnorm='density')%>%
+  layout(yaxis=list(range=c(0,0.7)),xaxis=list(range=c(90000,180000)))
 fig <- plotly:: subplot(fig1,fig2,fig3,fig4,nrows=2)%>%
   layout(title='Randomized Sampling of Total Compensation');fig
 
