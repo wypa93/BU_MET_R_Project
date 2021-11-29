@@ -6,22 +6,19 @@ library(tidyr)
 library(sampling)
 library(sm)
 library(stringr)
-
 # Ray's libraries
 library(maps)
 library(mapproj)
 library(mapdata)
 library(ggplot2)
-
 options(scipen=0)
-
 # Open from Pascal's PC
 data<-read.csv('/Users/wypa/Google Drive/Boston University /CS544_Fundamentals_of_R/Project/SO_Survey/survey_results_responses.csv')
-
 # Open from Ray's PC
 data<-read.csv('/Users/rayhan/Documents/School/BU/1) Fall 2021/CS 544 (Foundations of Analytics with R)/Final Project/BU_MET_R_Project/survey_results_responses.csv')
-
 View(data)
+
+data<-read.csv('https://drive.google.com/file/d/1qV0VL7mYMSvuoBLg32XyQnMRocS8c0WI/view?usp=sharing')
 
 ### PRE-PROCESSING ###
 # investigate and transform datatypes where required ###
@@ -38,6 +35,7 @@ us_data<-subset(data,Country == 'United States of America'&
 f<-fivenum(us_data$CompTotal);f
 subset(us_data, CompTotal > f[4] + 1.5*(f[4] - f[2])) 
 us_data<-subset(us_data,CompTotal<f[4]+1.5*(f[4]-f[2])) 
+
 
 
 ### CATEGORICAL DATA ###
@@ -68,7 +66,6 @@ getPopularity(us_data$MiscTechHaveWorkedWith,us_data$MiscTechWantToWorkWith,'Mis
 getPopularity(us_data$PlatformHaveWorkedWith,us_data$PlatformWantToWorkWith,'Webframes')
 #Collab Tools
 getPopularity(us_data$NEWCollabToolsHaveWorkedWith,us_data$NEWCollabToolsWantToWorkWith,'Collab Tools')
-
 #DONUT CHARTS
 getDonut <- function(values,name){
   vls <- sort(table(unlist(strsplit(values,split = ';',fixed = TRUE))),decreasing = FALSE)
@@ -77,16 +74,25 @@ getDonut <- function(values,name){
   fig <- fig %>% layout(title = name,  showlegend = F,
                         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
-  
   fig
 }
+#if stuck
 getDonut(us_data$NEWStuck,'What to do when you are stuck?')
+#Education
 getDonut(us_data$EdLevel,'What is your highest education level?')
+#Learn Code
 getDonut(us_data$LearnCode,'How did you learn to code?')
+#First Code Age
 getDonut(us_data$Age1stCode,'At what age did you start coding for the first time?')
+#Main Branch
 getDonut(us_data$MainBranch,'What is your occupation?')
+#Employment
 getDonut(us_data$Employment,'Are you working for an employer or do you freelance?')
+#DevType
 getDonut(us_data$DevType,'What dev type are you?')
+#SO visitor frequency
+getDonut(us_data$SOVisitFreq,'How frequently do you visit Stack Overflow?')
+
 
 
 ### ANALYSIS OF GENDER DIFFERENCES ###
@@ -94,7 +100,6 @@ female <- subset(us_data,Gender == 'Woman')
 male <- subset(us_data,Gender == 'Man')
 density1 <- density(female$CompTotal)
 density2 <- density(male$CompTotal)
-
 fig <- plot_ly(x = ~density1$x, y = ~density1$y, type = 'scatter', mode = 'lines', name = 'Women', fill = 'tozeroy')
 fig <- fig %>% add_trace(x = ~density2$x, y = ~density2$y, name = 'Man', fill = 'tozeroy')
 fig <- fig %>% layout(xaxis = list(title = 'Total Compensation'),
@@ -102,7 +107,6 @@ fig <- fig %>% layout(xaxis = list(title = 'Total Compensation'),
 ## Analyze Years of Professional Code Experience by Gender
 density3 <- density(drop_na(female,YearsCodePro)$YearsCodePro)
 density4 <- density(drop_na(male,YearsCodePro)$YearsCodePro)
-
 fig <- plot_ly(x = ~density3$x, y = ~density3$y, type = 'scatter', mode = 'lines', name = 'Women', fill = 'tozeroy')
 fig <- fig %>% add_trace(x = ~density4$x, y = ~density4$y, name = 'Man', fill = 'tozeroy')
 fig <- fig %>% layout(xaxis = list(title = 'Years of Professional Coding Experience'),
@@ -110,17 +114,21 @@ fig <- fig %>% layout(xaxis = list(title = 'Years of Professional Coding Experie
 ## Analyze Education Level by Gender
 ed_tab_m <- table(male$EdLevel)
 ed_tab_m <- ed_tab_m / sum(as.numeric(ed_tab_m))
-ed_tab_m <- sort(ed_tab_m,decreasing = TRUE)
-
+ed_tab_m <- sort(ed_tab_m,decreasing = FALSE)
 ed_tab_f <- table(female$EdLevel)
 ed_tab_f <- ed_tab_f / sum(as.numeric(ed_tab_f))
-ed_tab_f <- sort(ed_tab_f,decreasing = TRUE)
+ed_tab_f <- sort(ed_tab_f,decreasing = FALSE)
+fig <- plot_ly(type='bar',x=round(as.numeric(ed_tab_m),2),y=names(ed_tab_m),name='Men')
+fig %>% add_trace(type='bar',x=round(as.numeric(ed_tab_f),2),y=names(ed_tab_f),name='Woman')%>%
+  layout( yaxis = list(title = 'Educational Gender Comparison',
+                       categoryorder = "array",
+                       categoryarray = ~as.numeric(ed_tab_f)),
+          yaxis = list(title = "Frequency")
+  )
 
-fig <- plot_ly(type='bar',y=round(as.numeric(ed_tab_m),2),x=names(ed_tab_m),name='Men')
-fig %>% add_trace(type='bar',y=round(as.numeric(ed_tab_f),2),x=names(ed_tab_f),name='Woman')
 
 
-## Central Limit Theorem ##
+### CENTRAL LIMIT THEOREM ###
 sample.sizes <- c(20,30,40,50)
 sample.means <- c()
 sample.dev <- c()
@@ -145,7 +153,6 @@ fig4 <- plot_ly(x = ~getSamples(50), type = "histogram",name='size 50',histnorm=
   layout(yaxis=list(range=c(0,0.7)),xaxis=list(range=c(90000,180000)))
 fig <- plotly:: subplot(fig1,fig2,fig3,fig4,nrows=2)%>%
   layout(title='Randomized Sampling of Total Compensation');fig
-
 #print means and standard deviations for each size
 for (i in sample.sizes){
   x<-getSamples(i)
@@ -154,10 +161,6 @@ for (i in sample.sizes){
 }
 sprintf('Sample Size: %i, Mean: %f, Standard Deviation, %f',sample.sizes,sample.means,sample.dev)
 
-#identify most popular Tech-Stacks and display them as Word Cloud
-
-
-#show US map with coders origin
 
 
 # This is Ray's section

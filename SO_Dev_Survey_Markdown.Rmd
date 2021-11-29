@@ -5,6 +5,20 @@ output: github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(plotly)
+library(UsingR)
+library(usethis)
+library(dplyr)
+library(tidyr)
+library(sampling)
+library(sm)
+library(stringr)
+# Ray's libraries
+library(maps)
+library(mapproj)
+library(mapdata)
+library(ggplot2)
+
 ```
 
 ## GitHub Documents
