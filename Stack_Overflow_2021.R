@@ -18,11 +18,10 @@ data<-read.csv('/Users/wypa/Google Drive/Boston University /CS544_Fundamentals_o
 data<-read.csv('/Users/rayhan/Documents/School/BU/1) Fall 2021/CS 544 (Foundations of Analytics with R)/Final Project/BU_MET_R_Project/survey_results_responses.csv')
 View(data)
 
-data<-read.csv('https://drive.google.com/file/d/1qV0VL7mYMSvuoBLg32XyQnMRocS8c0WI/view?usp=sharing')
+
 
 ### PRE-PROCESSING ###
 # investigate and transform datatypes where required ###
-colnames(us_data) #us_data not defined before this (Ray)
 data$TotalComp<-as.integer(data$TotalComp) #typo here previously as.intger (Ray)
 data$YearsCode<-as.integer(data$YearsCode)
 data$YearsCodePro<-as.integer(data$YearsCodePro)
