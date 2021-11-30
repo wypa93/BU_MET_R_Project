@@ -164,12 +164,8 @@ sprintf('Sample Size: %i, Mean: %f, Standard Deviation, %f',sample.sizes,sample.
 
 
 # This is Ray's section
-# US States
+# Obtaining the map from the library
 s <- map_data('state')
-ggplot(s, aes(x = long, y = lat, group = group, fill = region)) +
-  geom_polygon(color = 'black') +
-  coord_map('polyconic') +
-  guides(fill = F)
 
 # Coders from each state
 Coders_Origin <- us_data %>% group_by(US_State) %>%
