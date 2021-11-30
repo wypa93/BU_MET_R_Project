@@ -19,11 +19,10 @@ library(mapproj)
 library(mapdata)
 library(ggplot2)
 
-?as.integer
 
 ### PRE-PROCESSING ###
 # load and transform datatypes where required ###
-#data <- read.csv('survey_results_responses.csv')
+data <- read.csv('survey_results_responses.csv')
 data$TotalComp<-as.integer(data$TotalComp)
 data$YearsCode<-as.integer(data$YearsCode)
 data$YearsCodePro<-as.integer(data$YearsCodePro)
