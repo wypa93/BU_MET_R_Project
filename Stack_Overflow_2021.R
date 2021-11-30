@@ -17,9 +17,11 @@ data<-read.csv('/Users/wypa/Google Drive/Boston University /CS544_Fundamentals_o
 # Open from Ray's PC
 data<-read.csv('/Users/rayhan/Documents/School/BU/1) Fall 2021/CS 544 (Foundations of Analytics with R)/Final Project/BU_MET_R_Project/survey_results_responses.csv')
 
-
-
 ### PRE-PROCESSING ###
+# investigate and transform datatypes where required ###
+data$CompTotal<-as.integer(data$CompTotal)
+data$YearsCode<-as.integer(data$YearsCode)
+data$YearsCodePro<-as.integer(data$YearsCodePro)
 #Remove Rows where Numeric Values are missing
 data <- subset(data,is.na(data$CompTotal)==FALSE &
                  is.na(data$YearsCode)==FALSE &
@@ -29,11 +31,6 @@ us_data<-subset(data,Country == 'United States of America'&
                   Currency == 'USD\tUnited States dollar'&
                   CompTotal > 15000 &
                   (Gender == 'Man' | Gender == 'Woman'))
-# investigate and transform datatypes where required ###
-us_data$CompTotal<-as.integer(us_data$CompTotal)
-us_data$YearsCode<-as.integer(us_data$YearsCode)
-us_data$YearsCodePro<-as.integer(us_data$YearsCodePro)
-
 #search for and remove  outliers in Salary data using 1.5 IQR
 f<-fivenum(us_data$CompTotal);f
 subset(us_data, CompTotal > f[4] + 1.5*(f[4] - f[2])) 

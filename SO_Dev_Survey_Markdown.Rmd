@@ -13,28 +13,32 @@ library(tidyr)
 library(sampling)
 library(sm)
 library(stringr)
-# Ray's libraries
 library(maps)
 library(mapproj)
 library(mapdata)
 library(ggplot2)
 
 
-### PRE-PROCESSING ###
+
+### DATA LOAD & PRE-PROCESSING ###
 # load and transform datatypes where required ###
 data <- read.csv('survey_results_responses.csv')
-data$TotalComp<-as.integer(data$TotalComp)
+data$CompTotal<-as.integer(data$CompTotal)
 data$YearsCode<-as.integer(data$YearsCode)
 data$YearsCodePro<-as.integer(data$YearsCodePro)
+#Remove Rows where Numeric Values are missing
+data <- subset(data,is.na(data$CompTotal)==FALSE &
+                 is.na(data$YearsCode)==FALSE &
+                 (is.na(data$YearsCodePro)==FALSE))
 #Analysis of US Responses only where Total Compensation > US Federal Minimum Wage 2021
 us_data<-subset(data,Country == 'United States of America'&
-                Currency == 'USD\tUnited States dollar'&
+                  Currency == 'USD\tUnited States dollar'&
                   CompTotal > 15000 &
-                (Gender == 'Man' | Gender == 'Woman'))
+                  (Gender == 'Man' | Gender == 'Woman'))
 #search for and remove  outliers in Salary data using 1.5 IQR
 f<-fivenum(us_data$CompTotal);f
 subset(us_data, CompTotal > f[4] + 1.5*(f[4] - f[2])) 
-us_data<-subset(us_data,CompTotal<f[4]+1.5*(f[4]-f[2])) 
+us_data<-subset(us_data,CompTotal<f[4]+1.5*(f[4]-f[2]))  
 
 ```
 
