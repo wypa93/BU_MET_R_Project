@@ -189,6 +189,38 @@ ggplot(Coders_data, aes(x = long, y = lat,
   ggtitle('Amount of coders by State')
 ####
 
+### new version with plotly
+#plotly
+Coders_Origin <- as.data.frame(table(us_data$US_State))
+
+Coders_Origin$code <- state.abb[match(Coders_Origin$Var1,state.name)]
+
+Coders_Origin$hover <- with(Coders_Origin, paste("Amount of coders", Freq))
+
+#give states boundaries a white border
+l <- list(color = toRGB("white"), width = 2)
+
+#specify some map projection/options
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showlakes = TRUE,
+  lakecolor = toRGB('white')
+)
+
+fig <- plot_geo(Coders_Origin, locationmode = 'USA-states')
+fig <- fig %>% add_trace(
+  z = ~Freq, text = ~hover, locations = ~code,
+  color = ~Freq, colors = 'Purples'
+)
+
+fig <- fig %>% colorbar(title = "Amount of coders")
+fig <- fig %>% layout (
+  title = "Amount of coders by state (Hover for breakdown)",
+  geo = g
+)
+
+fig
 # This is Maksim's section
 
 
