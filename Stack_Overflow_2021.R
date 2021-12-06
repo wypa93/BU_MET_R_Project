@@ -11,11 +11,16 @@ library(maps)
 library(mapproj)
 library(mapdata)
 library(ggplot2)
+# Maksim's libraries
+library(prob)
+library(sampling)
+
 options(scipen=0)
 # Open from Pascal's PC
 data<-read.csv('/Users/wypa/Google Drive/Boston University /CS544_Fundamentals_of_R/Project/SO_Survey/survey_results_responses.csv')
 # Open from Ray's PC
 data<-read.csv('/Users/rayhan/Documents/School/BU/1) Fall 2021/CS 544 (Foundations of Analytics with R)/Final Project/BU_MET_R_Project/survey_results_responses.csv')
+data <- read.csv('/Users/maksimromancuk/Desktop/CS544 and R/CS544_project/BU_MET_R_Project/survey_results_responses.csv')
 
 ### PRE-PROCESSING ###
 # investigate and transform datatypes where required ###
@@ -224,9 +229,47 @@ fig
 
 
 # This is Maksim's section
-#Hello Pascal
+library(prob)
+library(sampling)
 
+colnames(data)
+data$Country
+# change NA in CompTotal column for mean values
+data$CompTotal[is.na(data$CompTotal)]<-mean(data$CompTotal,na.rm=TRUE)
+#sampling -- srs without replacement
+top_countries <- sort(table(data$Country),decreasing=TRUE)[1:5]
+subset_countries <- subset(data,data$Country %in% names(top_countries))
+set.seed(9999)
+head(subset_countries,6)
+size = 40
+s<-srswor(size, nrow(subset_countries))
+subset_size_40 <- subset_countries[s != 0, ]
+table(subset_size_40$Country)
+table(subset_size_40$Country)/size
 
+# -- systematic sampling
+k <- ceiling(nrow(subset_countries)/size) #N rows are divided into n(40) groups and each group has k items
+r<-sample(k, 1)#random item from k is selected
+indexes = seq(r, by = k, length = size) #all items are selected by taking every k-th item from the frame
+subset_systematic <- subset_countries[indexes, ]
+table(subset_countries$Country)
+table(subset_countries$Country)
 
+#-- inclusion probabilities
+pik<-inclusionprobabilities(subset_countries$CompTotal,size)
+sum(pik)
+s<-UPsystematic(pik)
+sample<-subset_countries[s!=0,]
+table(sample$Country)
+table(sample$Country)/size
 
-####
+#--stratified sampling based on the Country variable
+subset_countries<-subset_countries[order(subset_countries$Country),]
+size_st<-table(subset_countries$Country)/sum(table(subset_countries$Country))*size
+
+st.1 <- sampling::strata(subset_countries, stratanames = c("Country"),
+                         size = size_st, method = "srswor",
+                         description = TRUE)
+#-- the frequency for the selected country with respect to sample size = 40
+table(getdata(subset_countries,st.1)$Country)/sum(table(getdata(subset_countries,st.1)$Country))
+
