@@ -20,6 +20,7 @@ options(scipen=0)
 data<-read.csv('/Users/wypa/Google Drive/Boston University /CS544_Fundamentals_of_R/Project/SO_Survey/survey_results_responses.csv')
 # Open from Ray's PC
 data<-read.csv('/Users/rayhan/Documents/School/BU/1) Fall 2021/CS 544 (Foundations of Analytics with R)/Final Project/BU_MET_R_Project/survey_results_responses.csv')
+# Open from Maxim's PC
 data <- read.csv('/Users/maksimromancuk/Desktop/CS544 and R/CS544_project/BU_MET_R_Project/survey_results_responses.csv')
 
 ### PRE-PROCESSING ###
@@ -231,37 +232,65 @@ fig
 # This is Maksim's section
 library(prob)
 library(sampling)
-
-colnames(data)
-data$Country
+fivenum(data$CompTotal)
 # change NA in CompTotal column for mean values
-data$CompTotal[is.na(data$CompTotal)]<-mean(data$CompTotal,na.rm=TRUE)
+data$ConvertedCompYearly
+data$ConvertedCompYearly[-is.na(data$ConvertedCompYearly)]
+
+library(tidyr)
+no_na <- na.omit(data$ConvertedCompYearly)
+data_1 <- data[data$ConvertedCompYearly %in% no_na, ]
+#take data without outliers
+min_out <- fivenum(data_1$ConvertedCompYearly)[2] - 1.5*(fivenum(data_1$ConvertedCompYearly)[4]-fivenum(data_1$ConvertedCompYearly)[2])
+max_out <- fivenum(data_1$ConvertedCompYearly)[4] + 1.5*(fivenum(data_1$ConvertedCompYearly)[4]-fivenum(data_1$ConvertedCompYearly)[2])
+data_1_no_out <- data_1[(data_1$ConvertedCompYearly> min_out) & (data_1$ConvertedCompYearly< max_out), ]
+min_val = floor(min(data_1_no_out$ConvertedCompYearly))
+max_val = ceiling(max(data_1_no_out$ConvertedCompYearly))
+step = (max_val-min_val)/20
+hist(data_1_no_out$ConvertedCompYearly, breaks = c(seq(from = min_val, to = max_val, by = step)))
+fivenum(data_1_no_out$ConvertedCompYearly)
+boxplot()
+
+library(plotly)
+fig1<-plot_ly(data_1_no_out,x=~ConvertedCompYearly, type = "box",name='The population dataset')%>%
+  layout(xaxis= list(showticklabels = FALSE)); fig1
+
+
+
 #sampling -- srs without replacement
-top_countries <- sort(table(data$Country),decreasing=TRUE)[1:5]
-subset_countries <- subset(data,data$Country %in% names(top_countries))
+#take the most popular countries
+top_countries <- sort(table(data_1_no_out$Country),decreasing=TRUE)[1:5]
+#taking the subset of these countries
+countries_srs <- subset(data_1_no_out,data_1_no_out$Country %in% names(top_countries))
 set.seed(9999)
-head(subset_countries,6)
-size = 40
-s<-srswor(size, nrow(subset_countries))
-subset_size_40 <- subset_countries[s != 0, ]
-table(subset_size_40$Country)
-table(subset_size_40$Country)/size
+size = 500
+#randomly chooses rows for further analysis
+s<-srswor(size, nrow(countries_srs))
+countries_srs_50 <- countries_srs[s != 0, ]
+fig2<-plot_ly(countries_srs_50,x=~ConvertedCompYearly, type = "box",name='SRS without replacement')%>%
+  layout(xaxis= list(showticklabels = FALSE)); fig2
+
+
+#making the subset of interested countries for further convenience
+subset_countries <- subset(data_1_no_out,data_1_no_out$Country %in% names(top_countries))
 
 # -- systematic sampling
-k <- ceiling(nrow(subset_countries)/size) #N rows are divided into n(40) groups and each group has k items
+k <- ceiling(nrow(subset_countries)/size) #N rows are divided into n(50) groups and each group has k items
 r<-sample(k, 1)#random item from k is selected
 indexes = seq(r, by = k, length = size) #all items are selected by taking every k-th item from the frame
 subset_systematic <- subset_countries[indexes, ]
-table(subset_countries$Country)
-table(subset_countries$Country)
+fig3<-plot_ly(subset_systematic,x=~ConvertedCompYearly, type = "box",name='Systematic Sampling')%>%
+  layout(xaxis= list(showticklabels = FALSE)); fig3
+
 
 #-- inclusion probabilities
-pik<-inclusionprobabilities(subset_countries$CompTotal,size)
+pik<-inclusionprobabilities(subset_countries$ConvertedCompYearly,size)
 sum(pik)
 s<-UPsystematic(pik)
 sample<-subset_countries[s!=0,]
-table(sample$Country)
-table(sample$Country)/size
+fig4<-plot_ly(sample, x=~ConvertedCompYearly, type = "box",name='Inclusion probabilities')%>%
+  layout(xaxis= list(showticklabels = FALSE)); fig4
+
 
 #--stratified sampling based on the Country variable
 subset_countries<-subset_countries[order(subset_countries$Country),]
@@ -270,6 +299,16 @@ size_st<-table(subset_countries$Country)/sum(table(subset_countries$Country))*si
 st.1 <- sampling::strata(subset_countries, stratanames = c("Country"),
                          size = size_st, method = "srswor",
                          description = TRUE)
-#-- the frequency for the selected country with respect to sample size = 40
-table(getdata(subset_countries,st.1)$Country)/sum(table(getdata(subset_countries,st.1)$Country))
+st.sample1 <- getdata(subset_countries, st.1)
+fig5<-plot_ly(st.sample1, x=~ConvertedCompYearly, type = "box",name='Stratified Sampling')%>%
+  layout(xaxis= list(showticklabels = FALSE)); fig5
+fig <- plotly:: subplot(fig1,fig2,fig3,fig4, fig5, nrows =5)%>%
+  layout(showlegend = FALSE)
+fig
 
+
+
+
+head(data)
+colnames(data)
+table(data$Age)
