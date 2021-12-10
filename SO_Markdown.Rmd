@@ -1,6 +1,22 @@
 ---
 title: "Stack Overflow Developer Survey 2021"
-output: html_document
+output: 
+  rmdformats::material
+  # prettydoc::html_pretty:
+  #     theme: cayman
+  #     highlight: github 
+  #     toc: true
+  #   toc_float: true
+  #   toc_depth: 2
+  #   number_sections: false
+  # rmarkdown::html_document:
+  #   toc: true
+  #   toc_float: true
+  #   toc_depth: 2
+  #   number_sections: false
+  #   theme: tactile #check to change this
+  # pdf_document:
+  #   highlight: tango
 ---
 
 ```{r,include=FALSE}
@@ -10,53 +26,97 @@ library(usethis)
 library(dplyr)
 library(tidyr)
 library(sampling)
+library(prob)
 library(sm)
 library(stringr)
 library(maps)
 library(mapproj)
 library(mapdata)
 library(ggplot2)
+library(gtrendsR)
 options(scipen=0)
 ```
 
 
-
+**Note:** This analysis presents results of the 2021 Stack Overflow Developer Survey focusing on the feedback of 8193 US-based respondents. As this analysis will set its focus on questions around remuneration, any outliers above the 1.5 IQR boundary are removed. Generally, only complete survey feedbacks are considered.
 ```{r, include= FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
 ### DATA LOAD & PRE-PROCESSING ###
 # load and transform datatypes where required ###
 data <- read.csv('survey_results_responses.csv')
-data$CompTotal<-as.integer(data$CompTotal)
+data$ConvertedCompYearly<-as.integer(data$ConvertedCompYearly)
 data$YearsCode<-as.integer(data$YearsCode)
 data$YearsCodePro<-as.integer(data$YearsCodePro)
+#shorten Education Level string length
+data$EdLevel<-replace(data$EdLevel, data$EdLevel == 'Secondary school (e.g. American high school, German Realschule or Gymnasium, etc.)', 'Secondary school')
+data$EdLevel<-replace(data$EdLevel, data$EdLevel == 'Bachelor’s degree (B.A., B.S., B.Eng., etc.)', 'Bachelor’s degree')
+data$EdLevel<-replace(data$EdLevel, data$EdLevel == 'Master’s degree (M.A., M.S., M.Eng., MBA, etc.)', 'Master’s degree')
+data$EdLevel<-replace(data$EdLevel, data$EdLevel == 'Some college/university study without earning a degree', 'college without earning  degree')
+data$EdLevel<-replace(data$EdLevel, data$EdLevel == 'Associate degree (A.A., A.S., etc.)', 'Associate degree')
 #Remove Rows where Numeric Values are missing
-data <- subset(data,is.na(data$CompTotal)==FALSE &
+data <- subset(data,is.na(data$ConvertedCompYearly)==FALSE &
                  is.na(data$YearsCode)==FALSE &
                  (is.na(data$YearsCodePro)==FALSE))
 #Analysis of US Responses only where Total Compensation > US Federal Minimum Wage 2021
 us_data<-subset(data,Country == 'United States of America'&
-                  Currency == 'USD\tUnited States dollar'&
-                  CompTotal > 15000 &
+                  ConvertedCompYearly > 15000 &
                   (Gender == 'Man' | Gender == 'Woman'))
 #search for and remove  outliers in Salary data using 1.5 IQR
-f<-fivenum(us_data$CompTotal);f
-subset(us_data, CompTotal > f[4] + 1.5*(f[4] - f[2])) 
-us_data<-subset(us_data,CompTotal<f[4]+1.5*(f[4]-f[2])) 
+f<-fivenum(us_data$ConvertedCompYearly);f
+subset(us_data, ConvertedCompYearly > f[4] + 1.5*(f[4] - f[2])) 
+us_data<-subset(us_data,ConvertedCompYearly<f[4]+1.5*(f[4]-f[2])) 
+nrow(us_data)
 ```
 
-## Stack Overflow Developer Survey 2021
 
-...
+# Survey Participants
 
-## Survey Participants
+## In which state or territory of the USA do you live? 
+
+The Majority of the US-based respondents live in California (988) followed by Texas (575), New York (488) and Washington (487). 
+```{r,echo=FALSE}
+Coders_Origin <- as.data.frame(table(us_data$US_State))
+
+Coders_Origin$code <- state.abb[match(Coders_Origin$Var1,state.name)]
+
+Coders_Origin$hover <- with(Coders_Origin, paste("Amount of coders", Freq))
+
+#give states boundaries a white border
+l <- list(color = toRGB("white"), width = 2)
+
+#specify some map projection/options
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showlakes = TRUE,
+  lakecolor = toRGB('white')
+)
+
+fig <- plot_geo(Coders_Origin, locationmode = 'USA-states')
+fig <- fig %>% add_trace(
+  z = ~Freq, text = ~hover, locations = ~code,
+  color = ~Freq, colors = 'Purples'
+)
+
+fig <- fig %>% colorbar(title = "Survey Respondents by State")
+fig <- fig %>% layout (
+  geo = g
+)
+
+fig
+```
+
+## What is your age?
+
+Three out of four survey participants are between 25 and 44 years old.
 ```{r echo=FALSE}
 
 getDonut <- function(values){
   vls <- sort(table(unlist(strsplit(values,split = ';',fixed = TRUE))),decreasing = FALSE)
   fig<-plot_ly(labels=names(vls),values=as.numeric(vls))
   fig <- fig %>% add_pie(hole = 0.6)
-  fig <- fig %>% layout( showlegend = T,
+  fig <- fig %>% layout( showlegend = F,
                         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
   fig
@@ -64,78 +124,74 @@ getDonut <- function(values){
 #if stuck
 getDonut(us_data$Age)
 ```
-What is your Gender?
+## Which of the following describe you, if any?
+
+With regards to gender the interviewed population shows a clear imbalance and as female particpants are only represented with 6.35 %.
 ```{r,echo=FALSE}
 getDonut(us_data$Gender)
 ```
-What is your Job Role?
+## Which of the following options best describes you today? Here, by "developer" we mean "someone who writes code." 
+
+The vast majority of participants are professional developers.
 ```{r,echo=FALSE}
 #Main Branch
 getDonut(us_data$MainBranch)
 ```
-What Developer Type are you?
+## Which of the following describes your current job?
+
+The largest share considers themselve as Full-Stack Developers, while the specific job roles are manifold.
 ```{r,echo=FALSE}
 #DevType
 getDonut(us_data$DevType)
 ```
-Are you working for an employer or do you freelance?
+## Which of the following best describes your current employment status?
+
+With regards to employment status about 95% declared to work for an employer while freelancers and independent workers are a minority.
 ```{r,echo=FALSE}
 #DevType
 getDonut(us_data$Employment)
 ```
-'What is your highest education level?'
+## Which of the following best describes the highest level of formal education that you’ve completed?
+
+80% of the respondents at least hold a bachelor's or any higher degree.
 ```{r,echo=FALSE}
 #DevType
 getDonut(us_data$EdLevel)
 ```
-How did you learn to code?
+## How did you learn to code?
+
+School, books, and online resources are named as most frequent ways to learn coding. 
 ```{r,echo=FALSE}
 #DevType
 getDonut(us_data$LearnCode)
 ```
-,'At what age did you start coding for the first time?'
+## At what age did you write your first line of code or program?
+
+More than half of all respondents claim to have written their first line during their adolescence.
 ```{r,echo=FALSE}
 #DevType
 getDonut(us_data$Age1stCode)
 ```
-What to do when you are stuck?
+## What do you do when you get stuck on a problem? 
+
+Most of the participants find the answers to their problems through Google and Stack Overflow. Just as frequently they would suggest to do a break and come back to the problem with a fresh mind.
 ```{r,echo=FALSE}
 #DevType
 getDonut(us_data$NEWStuck)
 ```
-How frequently do you visit Stack Overflow?
+## How frequently would you say you visit Stack Overflow?
+
+Almost every second participant visits Stack Overflow on a daily basis.
 ```{r,echo=FALSE}
 #DevType
 getDonut(us_data$SOVisitFreq)
 ```
-Where are you located?
-```{r,echo=FALSE}
-s <- map_data('state')
-
-# Coders from each state
-Coders_Origin <- us_data %>% group_by(US_State) %>%
-  summarise(count = n()) %>%
-  arrange(desc(count))
-
-# Merge data
-Coders_Origin$US_State <- tolower(Coders_Origin$US_State)
-Coders_data <- merge(s, Coders_Origin,
-                     by.x = 'region',
-                     by.y = 'US_State')
-
-# Plot
-ggplot(Coders_data, aes(x = long, y = lat,
-                        group = group,
-                        fill = count)) +
-  geom_polygon(color = 'gray') +
-  coord_map('polyconic') +
-  scale_fill_gradient2(low = 'white', high = 'red') +
-  theme_void() 
-```
 
 
-## Most Popular Tech-Stacks
+# Most Popular Tech-Stacks
 
+
+## Which programming, scripting, and markup languages have you done extensive development work in over the past year, and which do you want to work in over the next year?
 ```{r echo=FALSE}
 
 #POPULAR TECH-STACKS
@@ -154,29 +210,57 @@ getPopularity <- function(workedWith,wantToWorkWith,topic){
 #Coding Languages
 getPopularity(us_data$LanguageHaveWorkedWith,us_data$LanguageWantToWorkWith,'Languages')
 ```
-
+## Which database environments have you done extensive development work in over the past year, and which do you want to work in over the next year?
 ```{r,echo=FALSE}
 #Databases
 getPopularity(us_data$DatabaseHaveWorkedWith,us_data$DatabaseWantToWorkWith,'Databases')
 ````
-```{r,echo=FALSE}
+
+
+## Which tools have you done extensive development work in over the past year, and which do you want to work in over the next year?
+```{r echo=FALSE}
 #Coding Tools
 getPopularity(us_data$ToolsTechHaveWorkedWith,us_data$ToolsTechWantToWorkWith,'Tools')
 ```
+## Which cloud platforms have you done extensive development work in over the past year, and which do you want to work in over the next year?
+```{r,echo=FALSE}
+#Coding Tools
+getPopularity(us_data$PlatformHaveWorkedWith,us_data$PlatformWantToWorkWith,'Cloud')
+```
+ 
+## Which development environments did you use regularly over the past year, and which do you want to work with over the next year?
+```{r,echo=FALSE}
+#Coding Tools
+getPopularity(us_data$NEWCollabToolsHaveWorkedWith,us_data$NEWCollabToolsWantToWorkWith,'CollabTools')
+```
+## Which web frameworks and libraries have you done extensive development work in over the past year, and which do you want to work in over the next year? 
+```{r,echo=FALSE}
+#Coding Tools
+getPopularity(us_data$WebframeHaveWorkedWith,us_data$WebframeWantToWorkWith,'Webframes')
+```
+## Which other frameworks and libraries have you done extensive development work in over the past year, and which do you want to work in over the next year? 
+```{r,echo=FALSE}
+#Coding Tools
+getPopularity(us_data$MiscTechHaveWorkedWith,us_data$MiscTechWantToWorkWith,'MiscTech')
+```
 
-## Central Limit Theorem
+# Analysis of Annual Compensation Figures
+
+## Randomized Sampling (Central Limit Theorem)
+
+To gain a deeper understanding about the distribution of the salaries and to prove the Central Limit Theorem, random sampling is applied to generate samples of varying sizes 20,30,40 and 50. The central limit theorem states that if you have a population with mean μ and standard deviation σ and take sufficiently large random samples from the population with replacement, then the distribution of the sample means will be approximately normally distributed (Source: Wayne W. LaMorte - Boston University School of Public Health). The sample means are computed 10,000 times. As illustrated below, with an increasing sample size, the standard deviation shrinks.
 ```{r, echo=FALSE}
 ### CENTRAL LIMIT THEOREM ###
 sample.sizes <- c(20,30,40,50)
 sample.means <- c()
 sample.dev <- c()
 set.seed(9066)
-# Generate 1000 Samples of different sizes
+# Generate 10000 Samples of different sizes
 getSamples <- function(size){
   samples <- 10000
   xbar <- numeric(samples)
   for (i in 1: samples) {
-   xbar[i] <- mean(sample(us_data$CompTotal,size=size,replace=TRUE))
+   xbar[i] <- mean(sample(us_data$ConvertedCompYearly,size=size,replace=TRUE))
   }
   xbar
 }
@@ -201,22 +285,169 @@ for (i in sample.sizes){
   sample.means <- c(sample.means,mean(x))
   sample.dev <- c(sample.dev,sd(x))
 }
-sprintf('Sample Size: %i, Mean: %f, Standard Deviation, %f',sample.sizes,sample.means,sample.dev)
+sprintf('Sample Size: %i, Mean: %f, Standard Deviation, %f',sample.sizes,round(sample.means,2),round(sample.dev,2))
 ```
 
-## Analysis of Gender Differences
+## Alternative Sampling Techniques Annual Compensation Data
+Sampling is utilized when we want to determine any patterns that can be observed within a subset of the whole data. We have decided to sample our data based on the attribute ‘US_state’ and the value used in our distribution as ‘CONVERTERCOMPYEARLY’. When we look at and compare the four different types of distributions (SRS without replacement, Systematic sampling, Inclusion probabilities, and Stratified sampling) to the population dataset as a whole. 
+
+We can see that systematic sampling, and stratified sampling generally has the same min value as the population dataset with SRS without replacement having a slightly higher min value and Inclusion probabilities having a much higher min value. All sampling has a higher q1, mean, q3, and max value compared to the population dataset, with inclusion probabilities having the highest out of the four. Comparing all four of these sampling techniques, systematic sampling is the most similar to the population dataset and hence would be the most ideal type of sampling technique used.
+
+```{r echo=FALSE,message=FALSE, warning=FALSE}
+
+#data cleaning
+us_data_1 <- us_data[us_data$ConvertedCompYearly %in% na.omit(us_data$ConvertedCompYearly) , ]
+ten_perc <- nrow(us_data_1)*0.1
+min_out <- fivenum(us_data_1$ConvertedCompYearly)[2] - 1.5*(fivenum(us_data_1$ConvertedCompYearly)[4]-fivenum(us_data_1$ConvertedCompYearly)[2])
+max_out <- fivenum(us_data_1$ConvertedCompYearly)[4] + 1.5*(fivenum(us_data_1$ConvertedCompYearly)[4]-fivenum(us_data_1$ConvertedCompYearly)[2])
+us_data_1 <- us_data_1[(us_data_1$ConvertedCompYearly> min_out) & (us_data_1$ConvertedCompYearly< max_out), ]
+ten_perc <- nrow(us_data_1)*0.1
+
+#plots of population
+fig1<-plot_ly(us_data_1,x=~ConvertedCompYearly, type = "histogram",name='The population dataset', nbinsx = 20)%>%layout(xaxis= list(showticklabels = FALSE))
+
+fig1_bx <- plot_ly(us_data_1,x=~ConvertedCompYearly, type = "box",name='The population dataset')%>%
+  layout(xaxis= list(showticklabels = FALSE))
+
+
+#sampling -- srs without replacement
+#take the most popular states
+top_states <- sort(table(us_data_1$US_State),decreasing=TRUE)[1:5]
+#taking the subset of these states
+states_srs <- subset(us_data_1,us_data_1$US_State %in% names(top_states))
+set.seed(9999)
+size = ten_perc
+#randomly chooses rows for further analysis
+s<-srswor(size, nrow(states_srs))
+states_srs <- states_srs[s != 0, ]
+fig2<-plot_ly(states_srs,x=~ConvertedCompYearly, type = "histogram",name='SRS without replacement', nbinsx = 20)%>%
+  layout(xaxis= list(showticklabels = FALSE))
+fig2_bx <- plot_ly(states_srs,x=~ConvertedCompYearly, type = "box",name='SRS without replacement')%>%
+  layout(xaxis= list(showticklabels = FALSE))
+
+
+#making the subset of interested states for further convenience
+subset_states <- subset(us_data_1,us_data_1$US_State %in% names(top_states))
+
+# -- systematic sampling
+k <- ceiling(nrow(subset_states)/size) #N rows are divided into n = size groups and each group has k items
+r<-sample(k, 1)#random item from k is selected
+indexes = seq(r, by = k, length = size) #all items are selected by taking every k-th item from the frame
+subset_systematic <- subset_states[indexes, ]
+fig3<-plot_ly(subset_systematic,x=~ConvertedCompYearly, type = "histogram",name='Systematic Sampling', nbinsx = 20)%>%
+  layout(xaxis= list(showticklabels = FALSE))
+fig3_bx <- plot_ly(subset_systematic,x=~ConvertedCompYearly, type = "box",name='Systematic Sampling')%>%
+  layout(xaxis= list(showticklabels = FALSE))
+
+
+#-- inclusion probabilities
+pik<-inclusionprobabilities(subset_states$ConvertedCompYearly,size)
+sum(pik)
+s<-UPsystematic(pik)
+sample<-subset_states[s!=0,]
+fig4<-plot_ly(sample, x=~ConvertedCompYearly, type = "histogram",name='Inclusion probabilities', nbinsx = 20)
+fig4_bx <- plot_ly(sample,x=~ConvertedCompYearly, type = "box",name='Inclusion probabilities')%>%
+  layout(xaxis= list(showticklabels = FALSE))
+
+
+#--stratified sampling based on the Country variable
+subset_states<-subset_states[order(subset_states$US_State),]
+size_st<-table(subset_states$US_State)/sum(table(subset_states$US_State))*size
+
+st.1 <- sampling::strata(subset_states, stratanames = c("US_State"),
+                         size = size_st, method = "srswor",
+                         description = TRUE)
+st.sample1 <- getdata(subset_states, st.1)
+fig5<-plot_ly(st.sample1, x=~ConvertedCompYearly, type = "histogram",name='Stratified Sampling', nbinsx = 20)%>%
+  layout(xaxis= list(showticklabels = FALSE))
+fig5_bx <- plot_ly(st.sample1,x=~ConvertedCompYearly, type = "box",name='Stratified Sampling')%>%
+  layout(xaxis= list(showticklabels = FALSE))
+fig <- plotly:: subplot(fig1,fig2,fig3,fig4, fig5, nrows =5,shareX = TRUE,shareY = TRUE)%>%
+  layout(showlegend = FALSE)
+fig
+
+fig_bx <- plotly:: subplot(fig1_bx,fig2_bx,fig3_bx,fig4_bx, fig5_bx, nrows =5,shareX = TRUE,shareY = TRUE)%>%
+  layout(showlegend = FALSE)
+fig_bx
+
+```
+
+
+## Relationship between Total Compensation and Years of Professional Experience
+
+Age and salary show a moderate correlation with a Perason Coefficient of 0.3.It also appears that maximum pay limit can also be reached during an early career stage.
+```{r,echo=FALSE}
+## General Analysis of Compensation differences (EdLevel & Experience)
+plot_ly(type='scatter',data=us_data,x=~YearsCodePro,y=~ConvertedCompYearly,mode='markers')
+```
+Pearson Correlation:
+```{r,echo=FALSE}
+## General Analysis of Compensation differences (EdLevel & Experience)
+print(cor(us_data$YearsCodePro,us_data$ConvertedCompYearly))
+```
+
+
+## Relationship between Total Compensation and Highest Education Level
+
+Although salaries are sparse in every education level, the boxplot illustration suggests that survey participants holding a Master's or Doctoral degree earn on average higher salaries (135k) whereas there is only a slight difference between these two groups.
+```{r, echo=FALSE,message=FALSE, warning=FALSE}
+plot_ly(data=us_data,y=~ConvertedCompYearly,x=~EdLevel,type='box',showlegend=F)
+```
+
+## Total Compensation by Size of the Organization
+
+The size of the employer seem to play a crucial role as larger organizations are able to pay higher salaries compared to their smaller competitors.
+```{r, echo=FALSE,message=FALSE, warning=FALSE}
+plot_ly(data=us_data,y=~ConvertedCompYearly,x=~OrgSize,type='box',showlegend=F)
+```
+
+
+
+# Comparative Study - Analysis of Gender Differences
+
+
+## Salary Gap among male and female survey participants
+
+The density graphs below provide evidence that the female survey participants earn less compared to their male colleagues. This reflects the findings by the U.S. Bureau of Labor Statistics  (source: bls.gov/cps/earnings.htm).
 ```{r, echo=FALSE}
 ### ANALYSIS OF GENDER DIFFERENCES ###
 female <- subset(us_data,Gender == 'Woman')
 male <- subset(us_data,Gender == 'Man')
-density1 <- density(female$CompTotal)
-density2 <- density(male$CompTotal)
+density1 <- density(female$ConvertedCompYearly)
+density2 <- density(male$ConvertedCompYearly)
 fig <- plot_ly(x = ~density1$x, y = ~density1$y, type = 'scatter', mode = 'lines', name = 'Women', fill = 'tozeroy')
 fig <- fig %>% add_trace(x = ~density2$x, y = ~density2$y, name = 'Man', fill = 'tozeroy')
 fig <- fig %>% layout(xaxis = list(title = 'Total Compensation'),
                       yaxis = list(title = 'Density'));fig
 ```
 
+## Comparison of Highest Education Level
+
+When comparing men and women with regards to their educational level, the bars below suggest that women more often hold a Master's or Doctoral degree.  
+```{r,echo=FALSE}
+## Analyze Education Level by Gender
+
+
+
+ed_tab_m <- table(male$EdLevel)
+ed_tab_m <- ed_tab_m / sum(as.numeric(ed_tab_m))
+ed_tab_m <- sort(ed_tab_m,decreasing = FALSE)
+ed_tab_f <- table(female$EdLevel)
+ed_tab_f <- ed_tab_f / sum(as.numeric(ed_tab_f))
+ed_tab_f <- sort(ed_tab_f,decreasing = FALSE)
+fig <- plot_ly(type='bar',y=round(as.numeric(ed_tab_m),2),x=names(ed_tab_m),name='Men')
+fig %>% add_trace(type='bar',y=round(as.numeric(ed_tab_f),2),x=names(ed_tab_f),name='Woman')%>%
+  layout( xaxis = list(
+                       categoryorder = "array",
+                       categoryarray = ~as.numeric(ed_tab_f)),
+          xaxis = list(title = "Frequency")
+  )
+
+```
+
+## Comparison of  Professional Coding Experience
+
+The density distribution below suggests that the male survey participants have on average more years of professoinal experience, whereas women are stronger represented among the younger age classes.
 ```{r, echo=FALSE}
 ## Analyze Years of Professional Code Experience by Gender
 density3 <- density(drop_na(female,YearsCodePro)$YearsCodePro)
@@ -227,21 +458,39 @@ fig <- fig %>% layout(xaxis = list(title = 'Years of Professional Coding Experie
                       yaxis = list(title = 'Density'));fig
 ```
 
-```{r,echo=FALSE}
-## Analyze Education Level by Gender
-ed_tab_m <- table(male$EdLevel)
-ed_tab_m <- ed_tab_m / sum(as.numeric(ed_tab_m))
-ed_tab_m <- sort(ed_tab_m,decreasing = FALSE)
-ed_tab_f <- table(female$EdLevel)
-ed_tab_f <- ed_tab_f / sum(as.numeric(ed_tab_f))
-ed_tab_f <- sort(ed_tab_f,decreasing = FALSE)
-fig <- plot_ly(type='bar',x=round(as.numeric(ed_tab_m),2),y=names(ed_tab_m),name='Men')
-fig %>% add_trace(type='bar',x=round(as.numeric(ed_tab_f),2),y=names(ed_tab_f),name='Woman')%>%
-  layout( yaxis = list(title = 'Educational Gender Comparison',
-                       categoryorder = "array",
-                       categoryarray = ~as.numeric(ed_tab_f)),
-          yaxis = list(title = "Frequency")
-  )
 
+
+
+# Google Search Term Popularity for top Tech-Stacks since 2012
+
+**Source:** The data has been retrieved from the Google Trends API using the gtrendsR package.
+
+## Programming Languages
+```{r,echo=FALSE}
+languages <- gtrends(c('R Studio','Python','C#','Java','C++'),geo=c("US"),time =  "2012-01-01 2021-12-01")
+plot(languages)
 ```
-end
+
+## Databases
+```{r,echo=FALSE}
+databases <- gtrends(c('PostgreSQL','mySQL','MongoDB','Redis','Cassandra'),geo=c("US"),time =  "2012-01-01 2021-12-01")
+plot(databases)
+```
+
+## Tools
+```{r,echo=FALSE}
+platforms <- gtrends(c('Git','Kubernetes','Docker','Unreal Engine','Deno'),geo=c("US"),time =  "2012-01-01 2021-12-01")
+plot(platforms)
+```
+
+## Platforms
+```{r,echo=FALSE}
+ml <- gtrends(c('AWS','Azure','Google Cloud','Heroku','IBM Watson'),geo=c("US"),time =  "2012-01-01 2021-12-01")
+plot(ml)
+```
+
+## Machine Learning
+```{r,echo=FALSE}
+ml <- gtrends(c('Keras','TensorFlow','Scikit','PyTorch'),geo=c("US"),time =  "2012-01-01 2021-12-01")
+plot(ml)
+```
